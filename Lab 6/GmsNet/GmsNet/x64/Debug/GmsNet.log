@@ -1,2 +1,0 @@
-﻿  Source1.cpp
-C:\Users\gameuser\Desktop\Foldera\College\Fund Gms Net\Fund-Gms-Net\Lab 6\GmsNet\GmsNet\Source1.cpp(69,42): error C4996: 'inet_ntoa': Use inet_ntop() or InetNtop() instead or define _WINSOCK_DEPRECATED_NO_WARNINGS to disable deprecated API warnings
