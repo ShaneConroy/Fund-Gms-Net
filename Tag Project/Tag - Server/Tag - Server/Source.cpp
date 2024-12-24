@@ -4,6 +4,7 @@ void main()
 {
 	Server server(1111);
 
+	std::cout << "Waiting for players" << "\n";
 	// Wait for both players
 	for (int itr = 0; itr < 2; itr++)
 	{
@@ -34,44 +35,38 @@ void main()
 	server.playerPos[2].x = 300;
 	server.playerPos[2].y = 300;
 
-	sf::CircleShape host(50);
-	host.setFillColor(sf::Color::White);
-	host.setOutlineColor(sf::Color::Red);
-	host.setOutlineThickness(8);
-	host.setPosition(100, 100);
+	server.host.setRadius(50);
+	server.host.setFillColor(sf::Color::White);
+	server.host.setPosition(100, 100);
 
-	sf::CircleShape playerOneShape(50);
-	playerOneShape.setFillColor(sf::Color::White);
-	playerOneShape.setOutlineColor(sf::Color::Green);
-	playerOneShape.setOutlineThickness(8);
-	playerOneShape.setPosition(200, 200);
+	server.playerOneShape.setRadius(50);
+	server.playerOneShape.setFillColor(sf::Color::White);
+	server.playerOneShape.setPosition(200, 200);
 
-	sf::CircleShape playerTwoShape(50);
-	playerTwoShape.setFillColor(sf::Color::White);
-	playerTwoShape.setOutlineColor(sf::Color::Green);
-	playerTwoShape.setOutlineThickness(8);
-	playerTwoShape.setPosition(300, 300);
+	server.playerTwoShape.setRadius(50);
+	server.playerTwoShape.setFillColor(sf::Color::White);
+	server.playerTwoShape.setPosition(300, 300);
 
 	server.currentChaser = (rand() % 3);
 	server.sendChaser();
 
 	if (server.currentChaser == 0)
 	{
-		host.setFillColor(sf::Color::Red);
-		playerOneShape.setFillColor(sf::Color::White);
-		playerTwoShape.setFillColor(sf::Color::White);
+		server.host.setFillColor(sf::Color::Red);
+		server.playerOneShape.setFillColor(sf::Color::Green);
+		server.playerTwoShape.setFillColor(sf::Color::Green);
 	}
 	if (server.currentChaser == 1)
 	{
-		host.setFillColor(sf::Color::White);
-		playerOneShape.setFillColor(sf::Color::Red);
-		playerTwoShape.setFillColor(sf::Color::White);
+		server.host.setFillColor(sf::Color::Green);
+		server.playerOneShape.setFillColor(sf::Color::Red);
+		server.playerTwoShape.setFillColor(sf::Color::Green);
 	}
 	if (server.currentChaser == 2)
 	{
-		host.setFillColor(sf::Color::White);
-		playerOneShape.setFillColor(sf::Color::White);
-		playerTwoShape.setFillColor(sf::Color::Red);
+		server.host.setFillColor(sf::Color::Green);
+		server.playerOneShape.setFillColor(sf::Color::Green);
+		server.playerTwoShape.setFillColor(sf::Color::Red);
 	}
 
 	server.sendNewPos();
@@ -91,52 +86,58 @@ void main()
 
 		if (timeSinceLastUpdate > timePerFrame)
 		{
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && server.playerHit != 0)
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
 			{
 				server.playerPos[0].y -= server.speed;
 				server.sendNewPos();
 			}
-			else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) && server.playerHit != 0)
+			else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
 			{
 				server.playerPos[0].y += server.speed;
 				server.sendNewPos();
 			}
-			else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) && server.playerHit != 0)
+			else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
 			{
 				server.playerPos[0].x -= server.speed;
 				server.sendNewPos();
 			}
-			else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) && server.playerHit != 0)
+			else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
 			{
 				server.playerPos[0].x += server.speed;
 				server.sendNewPos();
 			}
-
-			// Every 60 frames, update all seconds by 1
-			if (server.timer > 60)
+			if (server.playerPos[0].x > 800)
 			{
-				server.hostAliveTime++;
-				server.playerOneAliveTime++;
-				server.playerTwoAliveTime++;
-				server.timer = 0;
+				server.playerPos[0].x = -100;
 			}
+			else if (server.playerPos[0].x < -100)
+			{
+				server.playerPos[0].x = 800;
+			}
+			else if (server.playerPos[0].y > 600)
+			{
+				server.playerPos[0].y = -100;
+			}
+			else if (server.playerPos[0].y < -100)
+			{
+				server.playerPos[0].y = 600;
+			}
+			server.collisions();
 
-			if (server.hitDelay > 0)//the cooldown between players getting caught
+			if (server.hitDelay > 0)
 			{
 				server.hitDelay--;
-			}
-			if (server.hitDelay == 1)
-			{
-				server.playerHit = -1;
-				server.timeAlice.setString("");
 			}
 
 			window.clear();
 
-			window.draw(host);
-			window.draw(playerOneShape);
-			window.draw(playerTwoShape);
-			window.draw(server.timeAlice);
+			window.draw(server.host);
+			server.host.setPosition(server.playerPos[0]);
+			window.draw(server.playerOneShape);
+			server.playerOneShape.setPosition(server.playerPos[1]);
+			window.draw(server.playerTwoShape);
+			server.playerTwoShape.setPosition(server.playerPos[2]);
+			window.draw(header);
 
 			window.display();
 

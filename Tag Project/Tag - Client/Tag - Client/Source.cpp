@@ -13,7 +13,7 @@ int main()
         system("pause");
         return 1;
     }
-
+    
     sf::RenderWindow window(sf::VideoMode(800, 600), "Client window");
 
     sf::Time timePerFrame = sf::seconds(1.0f / 60.0f);
@@ -37,17 +37,17 @@ int main()
     client.playerPos[2].x = 300;
     client.playerPos[2].y = 300;
 
-    sf::CircleShape host(50);
-    host.setFillColor(sf::Color::Red);
-    host.setPosition(100, 100);
+    client.host.setRadius(50);
+    client.host.setFillColor(sf::Color::Red);
+    client.host.setPosition(100, 100);
 
-    sf::CircleShape playerOne(50);
-    playerOne.setFillColor(sf::Color::Green);
-    playerOne.setPosition(200, 200);
+    client.playerOneShape.setRadius(50);
+    client.playerOneShape.setFillColor(sf::Color::Green);
+    client.playerOneShape.setPosition(200, 200);
 
-    sf::CircleShape playerTwo(50);
-    playerTwo.setFillColor(sf::Color::Green);
-    playerTwo.setPosition(300, 300);
+    client.playerTwoShape.setRadius(50);
+    client.playerTwoShape.setFillColor(sf::Color::Green);
+    client.playerTwoShape.setPosition(300, 300);
 
     while (window.isOpen())
     {
@@ -62,44 +62,36 @@ int main()
 
         if (timeSinceLastUpdate > timePerFrame)
         {
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::I))
             {
                 std::string userinput = "I";
                 client.SendString(userinput);
             }
-            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::K))
             {
-                std::string keyPressed = "K";
-                client.SendString(keyPressed);
+                std::string userinput = "K";
+                client.SendString(userinput);
             }
-            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::J))
             {
-                std::string keyPressed = "J";
-                client.SendString(keyPressed);
+                std::string userinput = "J";
+                client.SendString(userinput);
             }
-            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::L))
             {
-                std::string keyPressed = "L";
-                client.SendString(keyPressed);
+                std::string userinput = "L";
+                client.SendString(userinput);
             }
-
-            if (client.timeAliveDisplay > 0)
-            {
-                client.timeAliveDisplay--;
-            }
-            if (client.timeAliveDisplay == 1)
-            {
-                client.timeAlive.setString("");
-            }
-
             window.clear();
 
             window.draw(client.host);
+            //host.setPosition(client.playerPos[0]);
             window.draw(client.playerOneShape);
+            //client.playerOneShape.setPosition(client.playerPos[1]);
             window.draw(client.playerTwoShape);
+            //client.playerTwoShape.setPosition(client.playerPos[2]);
 
             window.draw(clientHeader);
-            window.draw(client.timeAlive);
 
             window.display();
 

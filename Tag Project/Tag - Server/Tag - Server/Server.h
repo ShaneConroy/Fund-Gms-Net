@@ -14,11 +14,12 @@
 #endif
 
 #include <SFML/Graphics.hpp>
+#include <iostream>
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #pragma comment(lib,"ws2_32.lib")
 #include <WinSock2.h>
 #include <string>
-#include <iostream>
+#include <sstream>
 
 enum Packet
 {
@@ -40,8 +41,8 @@ public:
 	int currentChaser = 0;
 	int speed = 10;
 
-	int hitDelay = 30;
-	int hitDelayCap = 90;
+	int hitDelay = 10;
+	int hitDelayCap = 30;
 	int playerHit = -1;
 
 	int timer = 0;
@@ -61,6 +62,8 @@ public:
 	void sendNewPos(); // Update positions on client side
 	void sendChaser(); // Tell clients current chaser
 
+	void collisions();
+
 private:
 	bool sendall(int ID, char* data, int totalbytes);
 	bool recvall(int ID, char* data, int totalbytes);
@@ -74,11 +77,10 @@ private:
 
 	void updatePlayerPos(int ID, std::string& Input);
 
-	void collisions();
+	void logPositions();
 
-	void aliveTime();
+	std::string formatPositionsToString();
 
-	int elims = 0;
 
 private:
 	SOCKET Connections[100];

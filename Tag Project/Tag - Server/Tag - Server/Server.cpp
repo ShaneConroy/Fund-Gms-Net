@@ -4,7 +4,7 @@ Server::Server(int PORT, bool BroadcastPublically) //Port = port to broadcast on
 {
 	if (!font.loadFromFile("BebasNeue.otf"))
 	{
-		std::cout << "Error loading font\n";
+		std::cout << "Error loading font" << "\n";
 	}
 	timeAlice.setFont(font);
 	timeAlice.setCharacterSize(25);
@@ -72,11 +72,10 @@ bool Server::ProcessPacket(int ID, Packet _packettype)
 		{
 			return false;
 		}
-
-
+		std::cout << "Proccesing packet" << "\n";
 		updatePlayerPos(ID, Message);
 
-		std::cout << Message << " from " << ID << "\n";
+		std::cout << Message << " from, ID: " << ID << "\n";
 
 		break;
 	}
@@ -172,148 +171,95 @@ void Server::updatePlayerPos(int ID, std::string& Input)
 	}
 
 	// Screen wrapping
-	for (int iter = 0; iter < 3; iter++)
+	for (int iter = 0; iter <= 2; iter++)
 	{
 		if (playerPos[iter].x > 800)
 		{
-			playerPos[iter].x = 0;
+			playerPos[iter].x = -100;
 		}
-		else if (playerPos[iter].x < 0)
+		else if (playerPos[iter].x < -100)
 		{
 			playerPos[iter].x = 800;
 		}
 		else if (playerPos[iter].y > 600)
 		{
-			playerPos[iter].y = 0;
+			playerPos[iter].y = -100;
 		}
-		else if (playerPos[iter].y < 0)
+		else if (playerPos[iter].y < -100)
 		{
 			playerPos[iter].y = 600;
 		}
 	}
+	host.setPosition(playerPos[0]);
 
 	// After updating the positions, send them out
+	collisions();
 	sendNewPos();
 }
 
 void Server::collisions()
 {
-	if (host.getGlobalBounds().intersects(playerOneShape.getGlobalBounds()) && hitDelay == 0)
+	if (hitDelay <= 0)
 	{
-		if (currentChaser == 0)
+		if (host.getGlobalBounds().intersects(playerOneShape.getGlobalBounds()))
 		{
-			currentChaser = 1;
-			hitDelay = hitDelayCap;
-			playerHit = 1;
-			sendChaser();
-			playerOneAliveTime = 0;
-			hostAliveTime = 0;
+			if (currentChaser == 0)
+			{
+				currentChaser = 1;
+				hitDelay = hitDelayCap;
+			}
+			else if (currentChaser == 1)
+			{
+				currentChaser = 0;
+				hitDelay = hitDelayCap;
+			}
 		}
-		else if (currentChaser == 1)
+		if (host.getGlobalBounds().intersects(playerTwoShape.getGlobalBounds()))
 		{
-			currentChaser = 0;
-			hitDelay = hitDelayCap;
-			playerHit = 0;
-			sendChaser();
-			hostAliveTime = 0;
-			playerOneAliveTime = 0;
+			if (currentChaser == 0)
+			{
+				currentChaser = 2;
+				hitDelay = hitDelayCap;
+			}
+			else if (currentChaser == 2)
+			{
+				currentChaser = 0;
+				hitDelay = hitDelayCap;
+			}
 		}
-	}
-	if (host.getGlobalBounds().intersects(playerTwoShape.getGlobalBounds()) && hitDelay == 0)
-	{
-		if (currentChaser == 0)
+		if (playerOneShape.getGlobalBounds().intersects(playerTwoShape.getGlobalBounds()))
 		{
-			currentChaser = 2;
-			hitDelay = hitDelayCap;
-			playerHit = 2;
-			sendChaser();
-			hostAliveTime = 0;
-			playerTwoAliveTime = 0;
+			if (currentChaser == 1)
+			{
+				currentChaser = 2;
+				hitDelay = hitDelayCap;
+			}
+			else if (currentChaser == 2)
+			{
+				currentChaser = 1;
+				hitDelay = hitDelayCap;
+			}
 		}
-		else if (currentChaser == 2)
-		{
-			currentChaser = 0;
-			hitDelay = hitDelayCap;
-			playerHit = 0;
-			sendChaser();
-			hostAliveTime = 0;
-			playerTwoAliveTime = 0;
-		}
-	}
-	if (playerOneShape.getGlobalBounds().intersects(playerTwoShape.getGlobalBounds()) && hitDelay == 0)
-	{
-		if (currentChaser == 2)
-		{
-			currentChaser = 1;
-			hitDelay = hitDelay;
-			playerHit = 1;
-			sendChaser();
-			playerOneAliveTime = 0;
-			playerTwoAliveTime = 0;
-		}
-		else if (currentChaser == 1)
-		{
-			currentChaser = 2;
-			hitDelay = hitDelayCap;
-			playerHit = 2;
-			sendChaser();
-			playerOneAliveTime = 0;
-			playerTwoAliveTime = 0;
-		}
+		sendChaser();
 	}
 
 	if (currentChaser == 0)
 	{
 		host.setFillColor(sf::Color::Red);
-		playerOneShape.setFillColor(sf::Color::White);
-		playerTwoShape.setFillColor(sf::Color::White);
+		playerOneShape.setFillColor(sf::Color::Green);
+		playerTwoShape.setFillColor(sf::Color::Green);
 	}
 	if (currentChaser == 1)
 	{
-		host.setFillColor(sf::Color::White);
+		host.setFillColor(sf::Color::Green);
 		playerOneShape.setFillColor(sf::Color::Red);
-		playerTwoShape.setFillColor(sf::Color::White);
+		playerTwoShape.setFillColor(sf::Color::Green);
 	}
 	if (currentChaser == 2)
 	{
-		host.setFillColor(sf::Color::White);
-		playerOneShape.setFillColor(sf::Color::White);
+		host.setFillColor(sf::Color::Green);
+		playerOneShape.setFillColor(sf::Color::Green);
 		playerTwoShape.setFillColor(sf::Color::Red);
-	}
-}
-
-void Server::aliveTime()
-{
-	std::string aliveMessage = "TIME ";
-
-	if (currentChaser == 0)
-	{
-		aliveMessage += "Player 1 was alive for ";
-		aliveMessage += std::to_string(hostAliveTime);
-		aliveMessage += " seconds!";
-
-		timeAlice.setString(aliveMessage);
-	}
-	if (currentChaser == 1)
-	{
-		aliveMessage += "Player 2 was alive for ";
-		aliveMessage += std::to_string(playerOneAliveTime);
-		aliveMessage += " seconds!";
-
-		timeAlice.setString(aliveMessage);
-	}
-	if (currentChaser == 2)
-	{
-		aliveMessage += "Player 3 was alive for ";
-		aliveMessage += std::to_string(playerTwoAliveTime);
-		aliveMessage += " seconds!";
-
-		timeAlice.setString(aliveMessage);
-	}
-
-	for (int i = 0; i < TotalConnections; i++)
-	{
-		SendString(i, aliveMessage);
 	}
 }
 
@@ -326,47 +272,46 @@ void Server::sendChaser()
 	{
 		SendString(i, whosChasingOutput);
 	}
-
-	// Sends out how long players were alive for
-	aliveTime();
 }
 
 void Server::sendNewPos()
 {
-	// Update all players new positions
-	host.setPosition(playerPos[0]);
-	playerOneShape.setPosition(playerPos[1]);
-	playerTwoShape.setPosition(playerPos[2]);
+    // Update all players' new positions
+    host.setPosition(playerPos[0]);
+    playerOneShape.setPosition(playerPos[1]);
+    playerTwoShape.setPosition(playerPos[2]);
 
-	collisions();
+    // Log positions
+    logPositions();
 
-	// Converts floats to int as its easier to pass over
-	sf::Vector2i hostIntPos = { static_cast<int>(playerPos[0].x),static_cast<int>(playerPos[0].y) };
-	sf::Vector2i clientOneIntPos = { static_cast<int>(playerPos[1].x),static_cast<int>(playerPos[1].y) };
-	sf::Vector2i clientTwoIntPos = { static_cast<int>(playerPos[2].x),static_cast<int>(playerPos[2].y) };
-
-	// Takes all new positions and puts them into a long string
-	std::string newPositions = "POS/";
-	newPositions += std::to_string(hostIntPos.x);
-	newPositions += "/";
-	newPositions += std::to_string(hostIntPos.y);
-	newPositions += "/";
-	newPositions += std::to_string(clientOneIntPos.x);
-	newPositions += "/";
-	newPositions += std::to_string(clientOneIntPos.y);
-	newPositions += "/";
-	newPositions += std::to_string(clientTwoIntPos.x);
-	newPositions += "/";
-	newPositions += std::to_string(clientTwoIntPos.y);
-	newPositions += "/";
-
-	positionsString = newPositions;
-
-	// Sends out new postions to each client
-	for (int i = 0; i < TotalConnections; i++)
-	{
-		SendString(i, positionsString);
-	}
+    // Send new positions to each client
+    std::string positionsString = formatPositionsToString();
+    for (int i = 0; i < TotalConnections; i++)
+    {
+        SendString(i, positionsString);
+    }
 }
+
+void Server::logPositions()
+{
+    std::cout << "----Host X: " << host.getPosition().x << ", Host Y: " << host.getPosition().y << "\n";
+    std::cout << "----One X: " << playerOneShape.getPosition().x << ", One Y: " << playerOneShape.getPosition().y << "\n";
+    std::cout << "----Two X: " << playerTwoShape.getPosition().x << ", Two Y: " << playerTwoShape.getPosition().y << "\n";
+}
+
+std::string Server::formatPositionsToString()
+{
+    std::ostringstream newPositions;
+    newPositions << "POS/"
+                 << static_cast<int>(playerPos[0].x) << "/"
+                 << static_cast<int>(playerPos[0].y) << "/"
+                 << static_cast<int>(playerPos[1].x) << "/"
+                 << static_cast<int>(playerPos[1].y) << "/"
+                 << static_cast<int>(playerPos[2].x) << "/"
+                 << static_cast<int>(playerPos[2].y) << "/";
+
+    return newPositions.str();
+}
+
 
 
