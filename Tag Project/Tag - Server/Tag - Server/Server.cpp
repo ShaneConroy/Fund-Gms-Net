@@ -2,6 +2,13 @@
 
 Server::Server(int PORT, bool BroadcastPublically) //Port = port to broadcast on. BroadcastPublically = false if server is not open to the public (people outside of your router), true = server is open to everyone (assumes that the port is properly forwarded on router settings)
 {
+	if (!font.loadFromFile("BebasNeue.otf"))
+	{
+		std::cout << "Error loading font\n";
+	}
+	timeAlice.setFont(font);
+	timeAlice.setCharacterSize(25);
+
 	//Winsock Startup
 	WSAData wsaData;
 	WORD DllVersion = MAKEWORD(2, 1);
@@ -58,15 +65,18 @@ bool Server::ProcessPacket(int ID, Packet _packettype)
 {
 	switch (_packettype)
 	{
-	case P_playerInput: // Players input
+	case P_Message: // Players input
 	{
-		std::string playerInput;
-		if (!GetString(ID, playerInput))
+		std::string Message;
+		if (!GetString(ID, Message))
 		{
 			return false;
 		}
 
-		std::cout << playerInput << " from " << ID << "\n";
+
+		updatePlayerPos(ID, Message);
+
+		std::cout << Message << " from " << ID << "\n";
 
 		break;
 	}
@@ -99,7 +109,7 @@ void Server::updatePlayerPos(int ID, std::string& Input)
 {
 	// If there is two seperate keyboards
 	
-	//if ((ID == 0 && playerHit != 1) || (ID == 1 && playerHit != 2))
+	//if ((ID == 0) || (ID == 1))
 	//{
 	//	if (Input == "w" || Input == "W")
 	//	{
@@ -121,7 +131,7 @@ void Server::updatePlayerPos(int ID, std::string& Input)
 
 	// If there is only one keyboard
 
-	if (ID == 0 && playerHit != 1)
+	if (ID == 0)
 	{
 		if (Input == "w" || Input == "W")
 		{
@@ -141,7 +151,7 @@ void Server::updatePlayerPos(int ID, std::string& Input)
 		}
 	}
 
-	if (ID == 1 && playerHit != 2)
+	if (ID == 1)
 	{
 		if (Input == "i" || Input == "I")
 		{
@@ -272,7 +282,7 @@ void Server::collisions()
 	}
 }
 
-void Server::displayAliveTimer()
+void Server::aliveTime()
 {
 	std::string aliveMessage = "TIME ";
 
@@ -318,7 +328,7 @@ void Server::sendChaser()
 	}
 
 	// Sends out how long players were alive for
-	displayAliveTimer();
+	aliveTime();
 }
 
 void Server::sendNewPos()

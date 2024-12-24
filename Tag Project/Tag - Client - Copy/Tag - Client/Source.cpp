@@ -62,24 +62,38 @@ int main()
 
         if (timeSinceLastUpdate > timePerFrame)
         {
+            //if (_kbhit()) // Check if a key has been pressed
+            //{
+            //    char key = _getch();
+            //    if (key == 'i' || key == 'j' || key == 'k' || key == 'l')
+            //    {
+            //        std::string userinput(1, key);
+            //        if (!client.SendString(userinput))
+            //        {
+            //            break;
+            //        }
+            //        std::cout << "Sent: " << key << std::endl; // Debugging
+            //    }
+            //}
+
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
             {
-                std::string userinput = "I";
+                std::string userinput = "w";
                 client.SendString(userinput);
             }
             else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
             {
-                std::string keyPressed = "K";
+                std::string keyPressed = "s";
                 client.SendString(keyPressed);
             }
             else if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
             {
-                std::string keyPressed = "J";
+                std::string keyPressed = "a";
                 client.SendString(keyPressed);
             }
             else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
             {
-                std::string keyPressed = "L";
+                std::string keyPressed = "d";
                 client.SendString(keyPressed);
             }
 

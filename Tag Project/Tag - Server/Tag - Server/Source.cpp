@@ -13,8 +13,15 @@ void main()
 	sf::RenderWindow window(sf::VideoMode(800, 600), "window");
 
 	sf::Time timePerFrame = sf::seconds(1.0f / 60.0f);
-	sf::Time timeSinceLastUpdate = sf::Time::Zero;
+	sf::Time timeSinceLastUpdate = sf::Time::Zero; 
 	sf::Clock clock;
+
+	sf::Text header;
+
+	header.setFont(server.font);
+	header.setCharacterSize(25);
+	header.setString("HOST");
+	header.setPosition(50, 50);
 
 	clock.restart();
 

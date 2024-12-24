@@ -22,7 +22,7 @@
 
 enum Packet
 {
-	P_playerInput
+	P_Message
 };
 
 class Server
@@ -53,6 +53,7 @@ public:
 
 	sf::Font font;
 	sf::Text timeAlice;
+
 	int totalConnections = 0;
 
 	bool SendString(int ID, std::string& _string);
@@ -75,7 +76,7 @@ private:
 
 	void collisions();
 
-	void displayAliveTimer();
+	void aliveTime();
 
 	int elims = 0;
 
