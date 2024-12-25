@@ -2,90 +2,94 @@
 
 bool Client::ProcessPacket(Packet _packettype)
 {
-	switch (_packettype)
-	{
-	case P_Message: //If packet is a chat message packet
-	{
-		// Store Message
-		std::string Message;
-		if (!GetString(Message)) // Check not empty 
-			return false;
-		std::cout << Message << "\n";
-		// This should take the string of 
-		if (Message.rfind("POS/", 0) == 0)
-		{
-			size_t beginPos = 4; // Start position after intial "/"
-
-			for (int i = 0; i < 3; i++)
-			{
-				size_t nextSlash;
-
-				nextSlash = Message.find('/', beginPos); // Finds where the next "/" is
-				float playerPosX = std::stof(Message.substr(beginPos, nextSlash - beginPos));
-				beginPos = nextSlash + 1;
-
-				nextSlash = Message.find('/', beginPos);
-				if (nextSlash == std::string::npos)
-					break;
-
-				float playerPosY = std::stof(Message.substr(beginPos, nextSlash - beginPos));
-				beginPos = nextSlash + 1;
-
-				playerPos[i] = { playerPosX, playerPosY };
-			}
-
-			// Sets players new pos
-			host.setPosition(playerPos[0]);
-			std::cout << host.getPosition().x << ", " << host.getPosition().y << "\n";
-			playerOneShape.setPosition(playerPos[1]);
-			std::cout << playerOneShape.getPosition().x << ", " << playerOneShape.getPosition().y << "\n";
-			playerTwoShape.setPosition(playerPos[2]);
-			std::cout << playerTwoShape.getPosition().x << ", " << playerTwoShape.getPosition().y << "\n";
-		}
-
-		// Updates colours based on current chaser
-		if (Message.rfind("CHASING/", 0) == 0)
-		{
-			currentChaser = Message[8] - '0'; // Returns chaser from string
-			std::cout << currentChaser << "\n";
-			// Host
-			if (currentChaser == 0)
-			{
-				host.setFillColor(sf::Color::Red);
-				playerOneShape.setFillColor(sf::Color::Green);
-				playerTwoShape.setFillColor(sf::Color::White);
-			}
-
-			// Player
-			if (currentChaser == 1)
-			{
-				host.setOutlineColor(sf::Color::White);
-				playerOneShape.setOutlineColor(sf::Color::Red);
-				playerTwoShape.setOutlineColor(sf::Color::White);
-			}
-
-			// Player
-			if (currentChaser == 2)
-			{
-				host.setOutlineColor(sf::Color::White);
-				playerOneShape.setOutlineColor(sf::Color::White);
-				playerTwoShape.setOutlineColor(sf::Color::Red);
-			}
-		}
-		if (Message.rfind("TIME", 0) == 0)
-		{
-			timeAlive.setString(Message);
-			timeAliveDisplay = 90;
-		}
-
-		break;
-	}
-	default:
-		std::cout << "Unrecognized packet: " << _packettype << std::endl; //Display that packet was not found
-		break;
-	}
-	return true;
+    switch (_packettype)
+    {
+    case P_Message: // If packet is a chat message packet
+        return ProcessChatMessage();
+    default:
+        std::cout << "Unrecognized packet: " << _packettype << std::endl; // Display that packet was not found
+        return false;
+    }
+    return true;
 }
+
+bool Client::ProcessChatMessage()
+{
+    std::string Message;
+    if (!GetString(Message)) // Check not empty
+        return false;
+
+    std::cout << Message << "\n";
+
+    if (Message.rfind("POS/", 0) == 0)
+        ProcessPositionMessage(Message);
+
+    if (Message.rfind("CHASING/", 0) == 0)
+        ProcessChasingMessage(Message);
+
+    return true;
+}
+
+void Client::ProcessPositionMessage(const std::string& Message)
+{
+    size_t beginPos = 4; // Start position after initial "/"
+
+    for (int i = 0; i < 3; i++)
+    {
+        size_t nextSlash;
+
+        nextSlash = Message.find('/', beginPos); // Finds where the next "/" is
+        float playerPosX = std::stof(Message.substr(beginPos, nextSlash - beginPos));
+        beginPos = nextSlash + 1;
+
+        nextSlash = Message.find('/', beginPos);
+        if (nextSlash == std::string::npos)
+            break;
+
+        float playerPosY = std::stof(Message.substr(beginPos, nextSlash - beginPos));
+        beginPos = nextSlash + 1;
+
+        playerPos[i] = { playerPosX, playerPosY };
+    }
+
+    host.setPosition(playerPos[0]);
+    std::cout << host.getPosition().x << ", " << host.getPosition().y << "\n";
+    playerOneShape.setPosition(playerPos[1]);
+    std::cout << playerOneShape.getPosition().x << ", " << playerOneShape.getPosition().y << "\n";
+    playerTwoShape.setPosition(playerPos[2]);
+    std::cout << playerTwoShape.getPosition().x << ", " << playerTwoShape.getPosition().y << "\n";
+}
+
+void Client::ProcessChasingMessage(const std::string& Message)
+{
+    currentChaser = Message[8] - '0'; // Returns chaser from string
+    std::cout << "Current chaser: " << currentChaser << "\n";
+
+    // Host
+    if (currentChaser == 0)
+    {
+        host.setFillColor(sf::Color::Red);
+        playerOneShape.setFillColor(sf::Color::Green);
+        playerTwoShape.setFillColor(sf::Color::Green);
+    }
+
+    // Player 1
+    if (currentChaser == 1)
+    {
+        host.setFillColor(sf::Color::Green);
+        playerOneShape.setFillColor(sf::Color::Red);
+        playerTwoShape.setFillColor(sf::Color::Green);
+    }
+
+    // Player 2
+    if (currentChaser == 2)
+    {
+        host.setFillColor(sf::Color::Green);
+        playerOneShape.setFillColor(sf::Color::Green);
+        playerTwoShape.setFillColor(sf::Color::Red);
+    }
+}
+
 
 void Client::ClientThread()
 {
@@ -112,8 +116,6 @@ Client::Client(std::string IP, int PORT)
 {
 	if (!font.loadFromFile("BebasNeue.otf"))
 		std::cout << "Error loading font" << "\n";
-	timeAlive.setFont(font);
-	timeAlive.setCharacterSize(50);
 
 	//Winsock Startup
 	WSAData wsaData;
@@ -125,7 +127,7 @@ Client::Client(std::string IP, int PORT)
 	}
 
 	addr.sin_addr.s_addr = inet_addr(IP.c_str()); //Address (127.0.0.1) = localhost (this pc)
-	addr.sin_port = htons(PORT); //Port 
+	addr.sin_port = htons(PORT); //Port
 	addr.sin_family = AF_INET; //IPv4 Socket
 	clientptr = this; //Update ptr to the client which will be used by our client thread
 }
